@@ -1,0 +1,16 @@
+{
+  "note": "FDA publishes the Medical Device Shortages List as a web page with no API. Update this file from the live page before each run and record the capture date. Dates are YYYY-MM-DD. onApprox means only the month is known. offUnknown means the code left the list on an unconfirmed date.",
+  "capture_date": "2026-10-26",
+  "capture_source": "https://www.fda.gov/medical-devices/medical-device-supply-chain-and-shortages/medical-device-shortages-list",
+  "categories": {
+    "KNW": {"name": "Stereotactic breast biopsy needles", "spec": "General and plastic surgery", "list": {"on": "2026-03-13", "off": null}, "est": "Through Q1 2027"},
+    "DTZ": {"name": "Oxygenators, cardiopulmonary bypass", "spec": "Cardiovascular", "list": {"on": "2023-09-11", "off": null}, "est": "Through Q1 2027", "deep": "live"},
+    "DXT": {"name": "Angiographic control syringes", "spec": "Cardiovascular", "list": {"on": "2026-03-13", "off": "2026-10-26"}, "est": "Removed 2026-10-26"},
+    "GEI": {"name": "Electrosurgical cutting and coagulation devices (incl. endoscopic vessel harvesting)", "spec": "General and plastic surgery", "list": {"on": "2024-11-15", "off": null}, "est": "Through Q1 2027"},
+    "BYS": {"name": "Oxygenators, long-term support over 6 hours", "spec": "Cardiovascular", "list": {"on": "2023-09-11", "off": null}, "est": "Through Q1 2027", "deep": "live"},
+    "HBA": {"name": "Neurosurgical patties, sponges and strips", "spec": "Neurology", "list": {"on": "2026-05-06", "off": null}, "est": "Through Q4 2026"},
+    "FJK": {"name": "Hemodialysis bloodlines", "spec": "Gastroenterology and urology", "list": {"on": "2025-03-01", "onApprox": true, "off": "2026-06-16"}, "est": "Removed 2026-06-16", "deep": "completed, quality-related"},
+    "LNQ": {"name": "Implantable gastric electrical stimulation systems", "spec": "Gastroenterology and urology", "list": {"on": "2026-10-26", "off": null}, "est": "Added 2026-10-26"},
+    "MDB": {"name": "Blood culturing systems (BD BACTEC bottles)", "spec": "Microbiology", "list": {"on": "2024-07-10", "off": null, "offUnknown": true}, "est": "Removal date not confirmed", "deep": "completed, supply-driven", "ae_start": "2020-01"}
+  }
+}

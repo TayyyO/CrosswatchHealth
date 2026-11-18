@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="CrossWatch Health links FDA medical device safety and supply data to flag device categories where shortage and safety risks are building together.">
+<title>CrossWatch Health</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800;900&family=Source+Sans+3:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>img{max-width:100%}[hidden]{display:none!important}</style>
+<style>
+/* Layout: research-project landing page. Dark ink hero with the convergence mark and a live sample of the ranking, then light sections that walk from problem to method to roadmap. */
+:root{
+  --bg:#f3f5f6; --panel:#ffffff; --ink:#152028; --muted:#56646f; --line:#d9dfe3; --soft:#e9edef;
+  --hero:#0e1b21; --hero-ink:#e8eef1; --hero-muted:#9fb2bc; --hero-line:#25363e; --hero-card:#14262e;
+  --safety:#c2410c; --safety-soft:#fbe8dd; --supply:#0f6e78; --supply-soft:#dcf0f1;
+  --safety-on-dark:#ff9a6a; --supply-on-dark:#5fc7cf; --high:#ff8a7e;
+  --f-display:"Archivo",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-body:"Source Sans 3",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1519; --panel:#151d22; --ink:#e4eaee; --muted:#9aa8b2; --line:#29343b; --soft:#1c262c;
+  --hero:#0a1317; --hero-line:#1f2e35; --hero-card:#11212a;
+  --safety:#ff9a6a; --safety-soft:#3a2219; --supply:#5fc7cf; --supply-soft:#14313a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1519; --panel:#151d22; --ink:#e4eaee; --muted:#9aa8b2; --line:#29343b; --soft:#1c262c;
+  --hero:#0a1317; --hero-line:#1f2e35; --hero-card:#11212a;
+  --safety:#ff9a6a; --safety-soft:#3a2219; --supply:#5fc7cf; --supply-soft:#14313a; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.55;margin:0}
+.wrap{max-width:1140px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+a{color:inherit}
+a:focus-visible{outline:2px solid var(--supply-on-dark);outline-offset:3px;border-radius:2px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0}
+h2{font-size:clamp(1.6rem,3.2vw,2.2rem);font-weight:800;letter-spacing:-.02em;line-height:1.12}
+h3{font-size:1.08rem;font-weight:700;letter-spacing:-.005em}
+p{margin:0}
+.eyebrow{font-family:var(--f-display);font-size:.74rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.lede{color:var(--muted);max-width:62ch;font-size:1.05rem}
+
+/* hero */
+.hero{background:var(--hero);color:var(--hero-ink)}
+.hero .wrap{padding-block:22px 64px;display:flex;flex-direction:column;gap:48px}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:10px;font-family:var(--f-display);font-weight:800;font-size:1.05rem;letter-spacing:-.01em;text-decoration:none}
+.logo svg{width:30px;height:30px}
+.topnav{display:flex;gap:20px;flex-wrap:wrap;font-size:.92rem}
+.topnav a{color:var(--hero-muted);text-decoration:none}
+.topnav a:hover{color:var(--hero-ink)}
+.herogrid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:48px;align-items:center}
+@media (max-width:900px){.herogrid{grid-template-columns:minmax(0,1fr);gap:36px}}
+.hero h1{font-size:clamp(2.2rem,5.4vw,3.7rem);font-weight:900;letter-spacing:-.035em;line-height:1.02}
+.hero h1 .s{color:var(--safety-on-dark)} .hero h1 .p{color:var(--supply-on-dark)}
+.hero .sub{color:var(--hero-muted);font-size:1.12rem;max-width:54ch;margin-top:18px}
+.ctas{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
+.btn{display:inline-flex;align-items:center;gap:8px;font-family:var(--f-display);font-weight:700;font-size:.95rem;padding:12px 20px;border-radius:4px;text-decoration:none}
+.btn.primary{background:var(--hero-ink);color:var(--hero)}
+.btn.primary:hover{background:#fff}
+.btn.line{border:1px solid var(--hero-line);color:var(--hero-ink)}
+.btn.line:hover{border-color:var(--hero-muted)}
+.status{margin-top:22px;font-size:.88rem;color:var(--hero-muted);display:flex;gap:8px;align-items:center}
+.status i{width:8px;height:8px;border-radius:50%;background:var(--supply-on-dark);flex:none}
+
+.sample{background:var(--hero-card);border:1px solid var(--hero-line);border-radius:8px;overflow:hidden}
+.sample-h{display:flex;justify-content:space-between;gap:10px;padding:12px 16px;border-bottom:1px solid var(--hero-line);font-family:var(--f-mono);font-size:.72rem;color:var(--hero-muted)}
+.venn{display:block;width:100%;height:auto;padding:14px 16px 0}
+.venn text{font-family:var(--f-display);font-size:13px;font-weight:700}
+.rows{list-style:none;margin:0;padding:6px 0 8px}
+.rows li{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:12px;align-items:center;padding:9px 16px}
+.rows li+li{border-top:1px solid var(--hero-line)}
+.rows b{font-family:var(--f-display);font-size:1.25rem;font-variant-numeric:tabular-nums}
+.rows .nm{font-size:.92rem;line-height:1.3;min-width:0}
+.rows .nm span{font-family:var(--f-mono);font-size:.7rem;color:var(--hero-muted);margin-left:6px}
+.bar{display:flex;height:5px;border-radius:2px;overflow:hidden;background:var(--hero-line);margin-top:5px}
+.bar i{display:block}
+.tag{font-family:var(--f-display);font-size:.62rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--high);border:1px solid currentColor;border-radius:999px;padding:2px 7px;white-space:nowrap}
+.sample-f{padding:10px 16px 14px;font-size:.78rem;color:var(--hero-muted);border-top:1px solid var(--hero-line)}
+
+/* sections */
+section.band{padding-block:72px}
+section.band.alt{background:var(--panel);border-block:1px solid var(--line)}
+.shead{display:flex;flex-direction:column;gap:12px;margin-bottom:36px;max-width:760px}
+.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
+@media (max-width:960px){.grid4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:760px){.grid3,.grid2{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:520px){.grid4{grid-template-columns:minmax(0,1fr)}}
+.today{border-top:3px solid var(--ink);padding-top:14px;display:flex;flex-direction:column;gap:8px}
+.today p{color:var(--muted);font-size:.98rem}
+
+.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;border:1px solid var(--line);border-radius:8px;background:var(--panel);overflow:hidden}
+@media (max-width:860px){.steps{grid-template-columns:minmax(0,1fr)}}
+.step{padding:22px 22px 24px;display:flex;flex-direction:column;gap:10px}
+.step+.step{border-left:1px solid var(--line)}
+@media (max-width:860px){.step+.step{border-left:0;border-top:1px solid var(--line)}}
+.step .n{font-family:var(--f-mono);font-size:.78rem;color:var(--muted)}
+.step p{color:var(--muted);font-size:.98rem}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.chip{font-size:.78rem;font-weight:600;padding:3px 9px;border-radius:3px;background:var(--soft);color:var(--ink)}
+.chip.s{background:var(--safety-soft);color:var(--safety)} .chip.p{background:var(--supply-soft);color:var(--supply)}
+
+.signals{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:40px;align-items:center}
+@media (max-width:860px){.signals{grid-template-columns:minmax(0,1fr)}}
+.siglist{display:flex;flex-direction:column;gap:2px}
+.sig{display:grid;grid-template-columns:44px minmax(0,1fr);gap:14px;padding:14px 0;border-bottom:1px solid var(--line)}
+.sig:last-child{border-bottom:0}
+.sig .id{font-family:var(--f-mono);font-weight:500;font-size:.85rem;padding-top:2px}
+.sig.s .id{color:var(--safety)} .sig.p .id{color:var(--supply)}
+.sig p{color:var(--muted);font-size:.95rem}
+.convfig{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:20px}
+.convfig svg{display:block;width:100%;height:auto}
+.convfig svg text{font-family:var(--f-display);font-weight:700;font-size:13px}
+.convfig svg .small{font-family:var(--f-body);font-weight:400;font-size:12px}
+.convfig p{font-size:.92rem;color:var(--muted);margin-top:14px}
+
+.who{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:20px;display:flex;flex-direction:column;gap:10px}
+.who q{font-size:1.02rem;quotes:"\201C" "\201D";color:var(--ink)}
+.who .dec{font-size:.86rem;color:var(--muted)}
+
+.finding{border-left:3px solid var(--supply);padding:2px 0 2px 18px;display:flex;flex-direction:column;gap:8px}
+.finding.s{border-left-color:var(--safety)}
+.finding p{color:var(--muted);font-size:.98rem}
+.finding .k{font-family:var(--f-mono);font-size:.78rem;color:var(--muted)}
+
+.principles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px}
+@media (max-width:960px){.principles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:520px){.principles{grid-template-columns:minmax(0,1fr)}}
+.principles div{display:flex;flex-direction:column;gap:8px}
+.principles p{color:var(--muted);font-size:.95rem}
+
+.road{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;position:relative}
+@media (max-width:900px){.road{grid-template-columns:minmax(0,1fr)}}
+.phase{padding:22px 20px 22px 0;display:flex;flex-direction:column;gap:10px;border-top:2px solid var(--line);position:relative}
+.phase::before{content:"";position:absolute;top:-7px;left:0;width:12px;height:12px;border-radius:50%;background:var(--bg);border:2px solid var(--line)}
+.phase.now{border-top-color:var(--ink)}
+.phase.now::before{background:var(--ink);border-color:var(--ink)}
+.phase .when{font-family:var(--f-mono);font-size:.76rem;color:var(--muted)}
+.phase p{color:var(--muted);font-size:.93rem}
+.gate{font-size:.84rem;background:var(--soft);border-radius:4px;padding:8px 10px;color:var(--ink)}
+.gate b{font-weight:700}
+.nowtag{align-self:flex-start;font-family:var(--f-display);font-size:.64rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;background:var(--ink);color:var(--bg);padding:3px 8px;border-radius:999px}
+
+.about{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:40px}
+@media (max-width:860px){.about{grid-template-columns:minmax(0,1fr)}}
+.about .card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:22px;display:flex;flex-direction:column;gap:12px}
+.about .card p{color:var(--muted);font-size:.96rem}
+.inline{color:var(--supply);font-weight:600}
+.contact{display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--line);padding-top:14px;margin-top:2px}
+.contact div{display:flex;flex-direction:column;gap:2px}
+.contact a{user-select:all;word-break:break-all}
+
+footer{border-top:1px solid var(--line)}
+footer .wrap{padding-block:24px 36px;font-size:.84rem;color:var(--muted);display:flex;flex-direction:column;gap:6px}
+footer a{color:var(--supply)}
+
+@media (prefers-reduced-motion:no-preference){
+  .venn .cs{animation:inL 1.4s cubic-bezier(.2,.7,.2,1) both}
+  .venn .cp{animation:inR 1.4s cubic-bezier(.2,.7,.2,1) both}
+  .venn .ov{animation:glow 1.4s ease both}
+  @keyframes inL{from{transform:translateX(-26px)}to{transform:none}}
+  @keyframes inR{from{transform:translateX(26px)}to{transform:none}}
+  @keyframes glow{0%,55%{opacity:.35}100%{opacity:1}}
+}
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="wrap">
+    <div class="topbar">
+      <a class="logo" href="#top" id="top"><svg viewBox="0 0 30 30" aria-hidden="true"><circle cx="11.5" cy="15" r="8.5" fill="none" stroke="var(--safety-on-dark)" stroke-width="2.6"/><circle cx="18.5" cy="15" r="8.5" fill="none" stroke="var(--supply-on-dark)" stroke-width="2.6"/></svg>CrossWatch Health</a>
+      <nav class="topnav" aria-label="Sections"><a href="#how">How it works</a><a href="#findings">Early findings</a><a href="#roadmap">Roadmap</a><a href="#about">About</a><a href="#contact">Contact</a></nav>
+    </div>
+    <div class="herogrid">
+      <div>
+        <h1>See medical device <span class="s">safety</span> and <span class="p">supply</span> problems together, and earlier.</h1>
+        <p class="sub">CrossWatch links FDA adverse event, recall, device identifier and shortage data for each device category, so hospitals, distributors and manufacturers can spot the categories where safety and supply trouble are building at the same time.</p>
+        <div class="ctas">
+          <a class="btn primary" href="prototype/">Explore the prototype &rarr;</a>
+          <a class="btn line" href="#how">How the score works</a>
+        </div>
+        <p class="status"><i aria-hidden="true"></i>Independent research and development project. Prototype in public testing on FDA data.</p>
+      </div>
+      <figure class="sample" style="margin:0" aria-label="Sample from the September 2026 scoring run">
+        <div class="sample-h"><span>Scoring run · Sep 2026</span><span>9 categories monitored</span></div>
+        <svg class="venn" viewBox="0 0 400 120" aria-hidden="true">
+          <g class="cs"><circle cx="160" cy="60" r="52" fill="var(--safety-on-dark)" fill-opacity=".14" stroke="var(--safety-on-dark)" stroke-width="2"/><text x="122" y="64" text-anchor="middle" fill="var(--safety-on-dark)">Safety</text></g>
+          <g class="cp"><circle cx="240" cy="60" r="52" fill="var(--supply-on-dark)" fill-opacity=".14" stroke="var(--supply-on-dark)" stroke-width="2"/><text x="278" y="64" text-anchor="middle" fill="var(--supply-on-dark)">Supply</text></g>
+          <text class="ov" x="200" y="64" text-anchor="middle" fill="var(--hero-ink)" style="font-size:11px;letter-spacing:.08em">FLAG</text>
+        </svg>
+        <ul class="rows">
+          <li><b>67</b><div class="nm">Stereotactic breast biopsy needles<span>KNW</span><div class="bar"><i style="width:35%;background:var(--safety-on-dark)"></i><i style="width:32%;background:var(--supply-on-dark)"></i></div></div><span class="tag">Convergence</span></li>
+          <li><b>57</b><div class="nm">Cardiopulmonary bypass oxygenators<span>DTZ</span><div class="bar"><i style="width:25%;background:var(--safety-on-dark)"></i><i style="width:32%;background:var(--supply-on-dark)"></i></div></div><span class="tag">Convergence</span></li>
+          <li><b>57</b><div class="nm">Angiographic control syringes<span>DXT</span><div class="bar"><i style="width:25%;background:var(--safety-on-dark)"></i><i style="width:32%;background:var(--supply-on-dark)"></i></div></div><span class="tag">Convergence</span></li>
+        </ul>
+        <figcaption class="sample-f">Top three by combined score. A flag is a prompt for expert review, not a finding that a device is unsafe or a shortage forecast.</figcaption>
+      </figure>
+    </div>
+  </div>
+</header>
+
+<main>
+<section class="band" id="problem">
+  <div class="wrap">
+    <div class="shead">
+      <span class="eyebrow">The problem</span>
+      <h2>FDA publishes the warning signs in separate places, so they are rarely read together.</h2>
+      <p class="lede">Device safety signals (adverse event reports, recalls) and supply signals (shortages, discontinuances, how many manufacturers make a device) live in different FDA systems. Teams that make purchasing, substitution and quality decisions see problems late and in pieces.</p>
+    </div>
+    <div class="grid4">
+      <div class="today"><h3>Shortages</h3><p>The FDA shortage list is checked by hand and occasionally, or a shortage is first noticed as a supplier backorder.</p></div>
+      <div class="today"><h3>Recalls</h3><p>Recall notices arrive one at a time and are matched to inventory by hand.</p></div>
+      <div class="today"><h3>Adverse events</h3><p>MAUDE reports for the categories a team buys are rarely reviewed, because the database is hard to query and interpret.</p></div>
+      <div class="today"><h3>The overlap</h3><p>There is no simple way to see whether a category already under supply pressure is also showing rising safety activity.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="band alt" id="how">
+  <div class="wrap">
+    <div class="shead">
+      <span class="eyebrow">How it works</span>
+      <h2>Link the sources, score each category, and send the result to a person for review.</h2>
+    </div>
+    <div class="steps">
+      <div class="step"><span class="n">Step 1</span><h3>Link public FDA data by product code</h3><p>Every source is joined on FDA's three-letter product code into one table per device category per month.</p>
+        <div class="chips"><span class="chip s">MAUDE adverse events</span><span class="chip s">Recalls</span><span class="chip s">Enforcement reports</span><span class="chip">Classification</span><span class="chip p">GUDID device identifiers</span><span class="chip p">Shortages List</span><span class="chip p">Discontinuance List</span></div></div>
+      <div class="step"><span class="n">Step 2</span><h3>Score five explainable signals</h3><p>Each category is compared with its own history, using only data available at the time. The signals combine into a 0 to 100 score with every component visible.</p></div>
+      <div class="step"><span class="n">Step 3</span><h3>Flag convergence for expert review</h3><p>The main flag is raised when safety and supply signals are elevated in the same month. Automated text analysis groups recall reasons into themes and drafts a review note, so the reviewer starts from a summary rather than raw records.</p></div>
+    </div>
+
+    <div class="signals" style="margin-top:48px">
+      <div class="siglist">
+        <div class="sig s"><span class="id">S1</span><div><h3>Adverse event trend</h3><p>The last three months of reports compared with the prior two years for the same category.</p></div></div>
+        <div class="sig s"><span class="id">S2</span><div><h3>Severity mix</h3><p>A rising share of deaths and injuries among all reports.</p></div></div>
+        <div class="sig s"><span class="id">S3</span><div><h3>Recall activity</h3><p>Recalls in the last 12 months, weighted by FDA recall class.</p></div></div>
+        <div class="sig p"><span class="id">S4</span><div><h3>List status</h3><p>On FDA's shortage or discontinuance list, or recently removed.</p></div></div>
+        <div class="sig p"><span class="id">S5</span><div><h3>Supply concentration</h3><p>How few labelers have devices in commercial distribution.</p></div></div>
+      </div>
+      <figure class="convfig" style="margin:0">
+        <svg viewBox="0 0 420 230" role="img" aria-label="Convergence: the flag is raised where the safety subscore and supply subscore are both at least 0.5">
+          <rect x="60" y="20" width="340" height="170" fill="none" stroke="var(--line)"/>
+          <rect x="230" y="20" width="170" height="85" fill="var(--supply-soft)"/>
+          <rect x="230" y="20" width="170" height="85" fill="var(--safety)" fill-opacity=".12"/>
+          <line x1="230" y1="20" x2="230" y2="190" stroke="var(--muted)" stroke-dasharray="4 4"/>
+          <line x1="60" y1="105" x2="400" y2="105" stroke="var(--muted)" stroke-dasharray="4 4"/>
+          <text x="315" y="44" text-anchor="middle" fill="var(--ink)">Convergence</text>
+          <text class="small" x="315" y="60" text-anchor="middle" fill="var(--muted)">both subscores 0.5+</text>
+          <text class="small" x="230" y="208" text-anchor="middle" fill="var(--muted)">0.5</text>
+          <text x="230" y="226" text-anchor="middle" fill="var(--safety)">Safety subscore</text>
+          <text class="small" x="52" y="109" text-anchor="end" fill="var(--muted)">0.5</text>
+          <text x="22" y="105" text-anchor="middle" fill="var(--supply)" transform="rotate(-90 22 105)">Supply subscore</text>
+          <circle cx="299" cy="81" r="5" fill="var(--ink)"/><text class="small" x="307" y="94" fill="var(--muted)">KNW</text>
+          <circle cx="230" cy="81" r="5" fill="var(--ink)"/><text class="small" x="238" y="94" fill="var(--muted)">DTZ, DXT</text>
+          <circle cx="162" cy="81" r="5" fill="var(--muted)"/><text class="small" x="162" y="70" text-anchor="middle" fill="var(--muted)">GEI</text>
+          <circle cx="86" cy="81" r="5" fill="var(--muted)"/><text class="small" x="86" y="70" text-anchor="middle" fill="var(--muted)">HBA</text>
+          <circle cx="60" cy="40" r="5" fill="var(--muted)"/><text class="small" x="70" y="44" fill="var(--muted)">BYS</text>
+          <circle cx="137" cy="142" r="5" fill="var(--muted)"/><text class="small" x="145" y="146" fill="var(--muted)">FJK</text>
+          <circle cx="60" cy="142" r="5" fill="var(--muted)"/><text class="small" x="70" y="146" fill="var(--muted)">LNQ</text>
+          <circle cx="60" cy="163" r="5" fill="var(--muted)"/><text class="small" x="70" y="167" fill="var(--muted)">MDB</text>
+        </svg>
+        <p>Each dot is a device category in the September 2026 run. Most categories on the shortage list sit high on supply. Only those where safety activity is also elevated cross into the flag zone.</p>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<section class="band" id="who">
+  <div class="wrap">
+    <div class="shead"><span class="eyebrow">Who it is for</span><h2>Built for the people who decide what to stock, substitute and investigate.</h2></div>
+    <div class="grid4">
+      <div class="who"><h3>Hospital supply chain and value analysis</h3><q>Which categories we buy are at risk of shortage or show rising safety activity?</q><span class="dec">Stocking, substitution planning, product evaluation</span></div>
+      <div class="who"><h3>Distributors and GPOs</h3><q>Which categories across our catalog need attention first?</q><span class="dec">Inventory, allocation, sourcing, customer communication</span></div>
+      <div class="who"><h3>Quality and regulatory teams at manufacturers</h3><q>Is our category, or a competitor's, changing in safety or supply signals?</q><span class="dec">Trending, risk review, supply planning</span></div>
+      <div class="who"><h3>Researchers and public health analysts</h3><q>How do safety and supply signals relate across device types?</q><span class="dec">Research and policy analysis</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="band alt" id="findings">
+  <div class="wrap">
+    <div class="shead">
+      <span class="eyebrow">Early findings</span>
+      <h2>We test the method against shortages that already ended, and report what we find.</h2>
+      <p class="lede">Each completed shortage is rescored month by month with only the data available at the time, leaving out the shortage listing itself. Results are reported as found, including when no signal came first.</p>
+    </div>
+    <div class="grid2">
+      <div class="finding s"><span class="k">FJK · listed Mar 2025 · removed Jun 2026</span><h3>Hemodialysis bloodlines</h3><p>No safety signal came before the listing. Adverse event reports crossed their threshold five months after it, and a Class I recall followed. Here the safety data confirmed the problem during the shortage rather than predicting it.</p></div>
+      <div class="finding"><span class="k">MDB · listed Jul 2024</span><h3>Blood culture bottles</h3><p>A brief rise in reports nine months before listing faded by January 2024. Because this shortage came from a supplier's plastic bottle problem, the early rise was probably unrelated. Shortages like this are why CrossWatch scores supply signals alongside safety.</p></div>
+    </div>
+    <p class="lede" style="margin-top:28px;font-size:.96rem">Next: a control comparison against categories that never went into shortage, which measures how often flags appear without a shortage following.</p>
+  </div>
+</section>
+
+<section class="band" id="principles">
+  <div class="wrap">
+    <div class="shead"><span class="eyebrow">Principles</span><h2>Open enough that another analyst can check every number.</h2></div>
+    <div class="principles">
+      <div><h3>Public data only</h3><p>No confidential, proprietary or patient-level data. Every input is published by FDA.</p></div>
+      <div><h3>Transparent scoring</h3><p>Every score breaks down into its components. Methods and weights are documented publicly.</p></div>
+      <div><h3>Reproducible</h3><p>Code, configuration and source versions are versioned so the pipeline can be rerun from the README.</p></div>
+      <div><h3>A prompt, not a verdict</h3><p>CrossWatch does not diagnose defects, forecast shortages or give purchasing advice. It supports FDA, manufacturer and hospital surveillance.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="band alt" id="roadmap">
+  <div class="wrap">
+    <div class="shead">
+      <span class="eyebrow">Roadmap</span>
+      <h2>Four phases, each ending at a gate of evidence.</h2>
+      <p class="lede">Timing is a plan and will shift with results. The project moves to the next phase only when its gate is met.</p>
+    </div>
+    <div class="road">
+      <div class="phase now"><span class="nowtag">Current</span><span class="when">From Oct 2026</span><h3>1. Independent research project</h3><p>Pipeline and dashboard on public data. White paper, case studies and articles. Outreach to practitioners.</p><div class="gate"><b>Gate:</b> prototype v1.0 public, white paper posted, 3 or more practitioner reviews, 2 or more organizations interested in a pilot</div></div>
+      <div class="phase"><span class="when">Nov 2026 to mid 2027</span><h3>2. Pilot validation</h3><p>No-cost pilots with 1 to 2 hospitals or distributors. Signals refined with their feedback.</p><div class="gate"><b>Gate:</b> documented pilot results and a defined offering with a funding path</div></div>
+      <div class="phase"><span class="when">Late 2027 to 2028</span><h3>3. Company formation</h3><p>CrossWatch Health formed as a company, with advisors and first hires.</p><div class="gate"><b>Gate:</b> first paid agreement</div></div>
+      <div class="phase"><span class="when">2028 onward</span><h3>4. Commercial scale</h3><p>Subscriptions for hospitals, distributors and manufacturers, with weekly data, alerts and catalog matching.</p><div class="gate"><b>Gate:</b> customers in at least two user groups</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="band" id="about">
+  <div class="wrap about">
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <span class="eyebrow">About</span>
+      <h2>An independent research and development project led by Qasim T. Arigbabu.</h2>
+      <p class="lede">CrossWatch develops AI-enabled analytics and decision-support tools that link medical device safety data with supply and shortage data, so the critical devices U.S. patients depend on stay available and safely distributed. It is not yet a company and does not sell products or services.</p>
+    </div>
+    <div class="card">
+      <h3>Review the method</h3>
+      <p>Practitioners in device quality, regulatory affairs and hospital supply chain are invited to review the signals, the tiers and a sample of flagged categories. Written feedback shapes the next version of the method.</p>
+      <p>The <a class="inline" href="prototype/">interactive prototype</a> shows the current ranking, each category's signals, and the full retrospective test.</p>
+      <div class="contact" id="contact">
+        <div><span class="eyebrow">Email</span><a class="inline" href="mailto:crosswatchhealth@gmail.com">crosswatchhealth@gmail.com</a></div>
+        <div><span class="eyebrow">LinkedIn</span><a class="inline" href="https://www.linkedin.com/in/qasim-arigbabu-580b69152/" target="_blank" rel="noopener">Qasim T. Arigbabu</a></div>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer><div class="wrap">
+  <span>CrossWatch Health is an independent research and development project. It is not a company and does not sell products or services. Report counts are not rates, MAUDE is a passive reporting system, and scores are prompts for expert review.</span>
+  <span>Data: <a href="https://open.fda.gov/apis/device/" target="_blank" rel="noopener">openFDA device APIs</a> and the <a href="https://www.fda.gov/medical-devices/medical-device-supply-chain-and-shortages/medical-device-shortages-list" target="_blank" rel="noopener">FDA Medical Device Shortages List</a>.</span>
+</div></footer>
+</body>
+</html>
