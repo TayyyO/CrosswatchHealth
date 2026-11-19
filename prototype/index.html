@@ -1,0 +1,626 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="CrossWatch prototype: FDA device categories ranked by a transparent safety and supply risk score.">
+<title>CrossWatch Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Source+Sans+3:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>img{max-width:100%}[hidden]{display:none!important}</style>
+<style>
+/* Layout: analyst console. Two signal families get their own hues: safety (coral) and supply (teal); convergence is where they meet. */
+:root{
+  --bg:#f3f5f6; --panel:#ffffff; --ink:#152028; --muted:#5a6873; --line:#d9dfe3; --soft:#e9edef;
+  --safety:#c2410c; --safety-soft:#fbe8dd; --supply:#0f6e78; --supply-soft:#dcf0f1;
+  --high:#b42318; --high-soft:#fbe7e5; --elev:#a15c07; --elev-soft:#fcefd9; --watch:#5b6b12; --watch-soft:#eef2d6; --low:#4d5b66; --low-soft:#e8ecef;
+  --band:rgba(15,110,120,.10);
+  --f-display:"Archivo",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-body:"Source Sans 3",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1519; --panel:#151d22; --ink:#e4eaee; --muted:#9aa8b2; --line:#29343b; --soft:#1c262c;
+  --safety:#ff9a6a; --safety-soft:#3a2219; --supply:#5fc7cf; --supply-soft:#14313a;
+  --high:#ff8a7e; --high-soft:#3b1c1a; --elev:#f2b55a; --elev-soft:#3a2b14; --watch:#c5d46a; --watch-soft:#2b3216; --low:#a8b5be; --low-soft:#222c32;
+  --band:rgba(95,199,207,.12); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1519; --panel:#151d22; --ink:#e4eaee; --muted:#9aa8b2; --line:#29343b; --soft:#1c262c;
+  --safety:#ff9a6a; --safety-soft:#3a2219; --supply:#5fc7cf; --supply-soft:#14313a;
+  --high:#ff8a7e; --high-soft:#3b1c1a; --elev:#f2b55a; --elev-soft:#3a2b14; --watch:#c5d46a; --watch-soft:#2b3216; --low:#a8b5be; --low-soft:#222c32;
+  --band:rgba(95,199,207,.12); color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15.5px;line-height:1.5;margin:0}
+.wrap{max-width:1200px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.top{background:var(--panel);border-bottom:1px solid var(--line)}
+header.top .wrap{padding-block:18px 0;display:flex;flex-direction:column;gap:12px}
+.brand{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:10px 24px}
+.logo{display:flex;align-items:center;gap:12px}
+.mark{width:34px;height:34px;flex:none}
+.brand h1{font-family:var(--f-display);font-weight:800;font-size:1.45rem;letter-spacing:-.015em;margin:0;line-height:1.1}
+.brand h1 small{display:block;font-family:var(--f-body);font-weight:500;font-size:.88rem;color:var(--muted);letter-spacing:0}
+.run{font-family:var(--f-mono);font-size:.74rem;color:var(--muted);display:flex;flex-wrap:wrap;gap:2px 16px}
+.runbox{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+@media (max-width:640px){.runbox{align-items:flex-start}}
+.monthpick{display:flex;align-items:center;gap:8px;font-family:var(--f-display);font-size:.78rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.monthpick select{font-family:var(--f-body);font-size:.95rem;font-weight:600;letter-spacing:0;text-transform:none;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:5px 8px;cursor:pointer}
+.monthpick select:focus-visible{outline:2px solid var(--supply);outline-offset:2px}
+.pastbar{background:var(--elev-soft);border-bottom:1px solid var(--line);font-size:.9rem;color:var(--ink)}
+.pastbar .wrap{padding-block:9px;display:flex;flex-wrap:wrap;gap:4px 14px;align-items:center}
+.pastbar a{color:var(--ink);font-weight:700}
+td a.month{color:var(--supply);font-weight:600}
+nav.tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+nav.tabs a{font-family:var(--f-display);font-weight:600;font-size:.9rem;color:var(--muted);text-decoration:none;padding:10px 14px;border-bottom:3px solid transparent;white-space:nowrap}
+nav.tabs a[aria-current="page"]{color:var(--ink);border-bottom-color:var(--ink)}
+a:focus-visible,button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--supply);outline-offset:2px}
+.limits{background:var(--soft);border-bottom:1px solid var(--line);font-size:.84rem;color:var(--muted)}
+.limits .wrap{padding-block:8px}
+.limits strong{color:var(--ink);font-weight:600}
+main .wrap{padding-block:24px 40px;display:flex;flex-direction:column;gap:22px}
+h2{font-family:var(--f-display);font-weight:700;font-size:1.25rem;letter-spacing:-.01em;margin:0;text-wrap:balance}
+h3{font-family:var(--f-display);font-size:.74rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin:0;font-weight:700}
+.lede{color:var(--muted);margin:4px 0 0;max-width:72ch}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:6px}
+.ph{padding:13px 16px;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between}
+.pb{padding:14px 16px}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.9rem}
+th{text-align:left;font-family:var(--f-display);font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:700;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap;background:var(--soft)}
+td{padding:11px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+tbody tr.rowlink{cursor:pointer}
+tbody tr.rowlink:hover td{background:var(--soft)}
+.code{font-family:var(--f-mono);font-size:.78rem;font-weight:500;background:var(--soft);border:1px solid var(--line);border-radius:3px;padding:1px 5px;color:var(--ink);white-space:nowrap}
+.cat{font-weight:600;color:var(--ink);text-decoration:none}
+.cat:hover{text-decoration:underline}
+.sub{color:var(--muted);font-size:.82rem}
+.pill{display:inline-block;font-family:var(--f-display);font-size:.68rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:999px;white-space:nowrap}
+.t-High{background:var(--high-soft);color:var(--high)} .t-Elevated{background:var(--elev-soft);color:var(--elev)}
+.t-Watch{background:var(--watch-soft);color:var(--watch)} .t-Low,.t-Insufficient{background:var(--low-soft);color:var(--low)}
+.conv{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:.82rem;white-space:nowrap}
+.conv svg{width:22px;height:14px;flex:none}
+.scorecell{display:flex;align-items:center;gap:10px;min-width:170px}
+.scorecell b{font-family:var(--f-display);font-size:1.15rem;font-variant-numeric:tabular-nums;width:2.2em;text-align:right}
+.stack{flex:1;height:10px;background:var(--soft);border-radius:2px;display:flex;overflow:hidden;min-width:90px}
+.stack i{display:block;height:100%}
+.stack .s{background:var(--safety)} .stack .p{background:var(--supply)}
+.drivers{max-width:340px;font-size:.86rem}
+.drivers span{display:inline-block;margin:0 6px 3px 0;padding:1px 7px;border-radius:3px;font-size:.78rem;font-weight:600}
+.dv-s{background:var(--safety-soft);color:var(--safety)} .dv-p{background:var(--supply-soft);color:var(--supply)}
+.key{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:.82rem;color:var(--muted)}
+.key i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.callouts{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.callout{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px 14px;font-size:.88rem;display:flex;flex-direction:column;gap:4px}
+.callout b{font-family:var(--f-display);font-weight:700}
+.grid2{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:900px){.grid2{grid-template-columns:minmax(0,1fr)}}
+.chart{padding:10px 12px 6px}
+.chart svg{display:block;width:100%;height:auto}
+.chart text{font-family:var(--f-mono);font-size:10px;fill:var(--muted)}
+.dhead{display:flex;flex-wrap:wrap;gap:10px 20px;align-items:flex-start;justify-content:space-between}
+.dhead .big{display:flex;align-items:baseline;gap:10px}
+.dhead .big b{font-family:var(--f-display);font-size:2.4rem;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+.back{font-size:.88rem;color:var(--supply);text-decoration:none;font-weight:600}
+.subs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.subbox{border:1px solid var(--line);border-radius:6px;padding:10px 12px}
+.subbox .lbl{font-size:.78rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-family:var(--f-display)}
+.subbox .val{font-family:var(--f-display);font-size:1.4rem;font-weight:700;font-variant-numeric:tabular-nums}
+.subbox.s .lbl{color:var(--safety)} .subbox.p .lbl{color:var(--supply)}
+.meter{height:6px;background:var(--soft);border-radius:3px;position:relative;margin-top:6px}
+.meter i{position:absolute;left:0;top:0;bottom:0;border-radius:3px}
+.meter .tick{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink);left:50%}
+.flag{font-weight:600}
+.flag.on{color:var(--high)}
+.btn{font:inherit;font-weight:600;font-size:.88rem;padding:7px 14px;border-radius:4px;border:1px solid var(--ink);background:var(--ink);color:var(--panel);cursor:pointer}
+.btn.ghost{background:transparent;color:var(--ink)}
+.btn:disabled{opacity:.5;cursor:default}
+.ai-out{white-space:pre-wrap;font-size:.92rem;max-width:70ch}
+.ai-out:empty{display:none}
+.note{font-size:.82rem;color:var(--muted)}
+.prose{max-width:74ch;display:flex;flex-direction:column;gap:10px}
+.prose p{margin:0}
+.formula{font-family:var(--f-mono);font-size:.82rem;background:var(--soft);border:1px solid var(--line);border-radius:4px;padding:10px 12px;overflow-x:auto;white-space:pre}
+ul.clean{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px}
+.result{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.result div{border:1px solid var(--line);border-radius:6px;padding:10px 12px}
+.result b{display:block;font-family:var(--f-display);font-size:1.15rem}
+.result span{font-size:.82rem;color:var(--muted)}
+footer .wrap{padding-block:18px 30px;border-top:1px solid var(--line);font-size:.8rem;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+footer a,.prose a{color:var(--supply)}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="brand">
+      <div class="logo">
+        <svg class="mark" viewBox="0 0 34 34" aria-hidden="true"><circle cx="13" cy="17" r="10" fill="none" stroke="var(--safety)" stroke-width="3"/><circle cx="21" cy="17" r="10" fill="none" stroke="var(--supply)" stroke-width="3"/></svg>
+        <h1>CrossWatch Health<small>Device safety and supply signals, linked by FDA product code</small></h1>
+      </div>
+      <div class="runbox">
+        <label class="monthpick" id="monthpick" hidden>Scoring month <select id="month" aria-label="Scoring month"></select></label>
+        <div class="run" id="runline"></div>
+      </div>
+    </div>
+    <nav class="tabs" aria-label="Sections">
+      <a href="#ranking">Ranked categories</a>
+      <a href="#validation">Retrospective test</a>
+      <a href="#method">Method and run log</a>
+      <a href="../">Project home</a>
+    </nav>
+  </div>
+</header>
+<div class="pastbar" id="pastbar" role="status" hidden><div class="wrap"><span id="pastmsg"></span><a id="pastlink" href="./">View the latest run</a></div></div>
+<div class="limits" role="note"><div class="wrap"><strong>Read with care.</strong> Report counts are not rates. MAUDE is a passive reporting system. The score is a prompt for expert review, not a finding that a device is unsafe, a shortage forecast, or purchasing advice.</div></div>
+
+<main><div class="wrap">
+
+<section id="v-ranking" data-view>
+  <div style="display:flex;flex-direction:column;gap:18px">
+    <div>
+      <h2>Which device categories need attention, and why</h2>
+      <p class="lede">Every category on the FDA Medical Device Shortages List in the scoring month, plus recently removed and contrast categories. Each score adds a safety subscore (adverse event trend, severity mix, recalls) and a supply subscore (list status, supplier concentration). Select a category for its detail.</p>
+    </div>
+    <div class="callouts" id="callouts"></div>
+    <div class="panel">
+      <div class="ph">
+        <div class="key"><span><i style="background:var(--safety)"></i>Safety half of score</span><span><i style="background:var(--supply)"></i>Supply half of score</span><span><svg width="22" height="12" viewBox="0 0 22 12" aria-hidden="true" style="vertical-align:-2px;margin-right:6px"><circle cx="8" cy="6" r="5" fill="var(--safety)" opacity=".9"/><circle cx="14" cy="6" r="5" fill="var(--supply)" opacity=".9"/></svg>Convergence: both subscores at 0.5 or more</span></div>
+        <button class="btn ghost" id="export" type="button" hidden>Export scores (CSV)</button>
+      </div>
+      <div class="tablewrap"><table>
+        <thead><tr><th class="num">#</th><th>Category</th><th>Tier</th><th>Combined score</th><th>Convergence</th><th>Main drivers</th><th>List status</th></tr></thead>
+        <tbody id="rank-body"></tbody>
+      </table></div>
+    </div>
+    <p class="note" id="export-msg" aria-live="polite"></p>
+  </div>
+</section>
+
+<section id="v-detail" data-view hidden></section>
+
+<section id="v-validation" data-view hidden>
+  <div style="display:flex;flex-direction:column;gap:18px">
+    <div>
+      <h2>Did any signal come before the official listing?</h2>
+      <p class="lede">Each completed shortage is rescored month by month using only data received by that month, with list status (S4) left out. The results below are reported as found, including the case where no signal came first.</p>
+    </div>
+    <div id="retro"></div>
+    <div class="panel"><div class="ph"><h3>What these two cases show so far</h3><span class="note">Recorded from the September 2026 run</span></div><div class="pb prose">
+      <p><strong>Hemodialysis bloodlines (FJK), quality-related.</strong> No safety signal crossed its threshold before the March 2025 listing. The adverse event trend crossed in August 2025, five months after listing, and a Class I recall followed in September 2025. In this case the safety data confirmed the problem during the shortage rather than warning ahead of it.</p>
+      <p><strong>Blood culture bottles (MDB), supply-driven.</strong> The adverse event trend crossed in October 2023, nine months before the July 2024 listing, then fell back below threshold by January 2024. The shortage was linked to a supplier's plastic bottle availability, so this early crossing is probably unrelated to the cause. It is counted as a flag, but it should not be read as a successful early warning.</p>
+      <p><strong>Method finding for v0.2.</strong> With S4 excluded, the supply subscore can reach at most 0.4, so the convergence flag cannot be raised in a prediction test. Either the convergence rule needs a no-S4 variant, or S5 needs a time-varying history from archived GUDID releases. This is recorded for the changelog.</p>
+      <p class="note">Still to run: the control comparison against never-listed product codes, the severity signal (S2) in the monthly back-test, and the remaining completed shortages in the list history.</p>
+    </div></div>
+  </div>
+</section>
+
+<section id="v-method" data-view hidden>
+  <div style="display:flex;flex-direction:column;gap:18px">
+    <div>
+      <h2>How the score is built</h2>
+      <p class="lede">Risk Scoring Specification v0.1. All weights and thresholds are starting values, changed only through the documented validation process.</p>
+    </div>
+    <div class="grid2">
+      <div class="panel"><div class="ph"><h3>Signals and thresholds</h3></div><div class="tablewrap"><table>
+        <thead><tr><th>Signal</th><th>Measure</th><th>Elevated when</th></tr></thead>
+        <tbody>
+          <tr><td><span class="dv-s pill">S1</span> Adverse event trend</td><td>Mean of last 3 months vs mean and SD of the prior 24</td><td>z at least 2.0 and current level at least 5 per month</td></tr>
+          <tr><td><span class="dv-s pill">S2</span> Severity mix</td><td>Death and injury share, last 6 months vs prior 24</td><td>Rise of at least 10 points with at least 5 death or injury reports</td></tr>
+          <tr><td><span class="dv-s pill">S3</span> Recall activity</td><td>Weighted recall events in 12 months (Class I 3, II 2, III 1, unknown 2)</td><td>Any Class I, or weighted count at least 4</td></tr>
+          <tr><td><span class="dv-p pill">S4</span> List status</td><td>Shortage list 1.0, discontinuance 0.6, removed in last 12 months 0.4</td><td>Confirmed supply problem</td></tr>
+          <tr><td><span class="dv-p pill">S5</span> Supply concentration</td><td>Labelers in commercial distribution: 1 = 1.0, 2 = 0.7, 3 to 4 = 0.4, 5+ = 0.1</td><td>Context signal</td></tr>
+        </tbody></table></div></div>
+      <div class="panel"><div class="ph"><h3>Combining</h3></div><div class="pb prose">
+        <div class="formula">Safety = 0.5 x S1 + 0.2 x S2 + 0.3 x S3
+Supply = 0.6 x S4 + 0.4 x S5
+Score  = 100 x (0.5 x Safety + 0.5 x Supply)
+
+High      score 60+ or convergence
+Elevated  35 to 59
+Watch     15 to 34
+Low       below 15</div>
+        <p>Convergence is raised when Safety and Supply are both at least 0.5 in the same month.</p>
+      </div></div>
+    </div>
+    <div class="panel"><div class="ph"><h3>Implementation choices to confirm</h3></div><div class="pb">
+      <ul class="clean">
+        <li>S1 and S2 components: 0 below threshold, then value divided by twice the threshold, capped at 1. An elevated signal therefore starts at 0.5. The specification's wording could also mean starting at 0.</li>
+        <li>S1 uses the Poisson test when the baseline mean is below 10 reports per month.</li>
+        <li>Recall class comes from enforcement reports joined on event number. Events without a resolved class use the "unknown" weight of 2.</li>
+        <li>S5 uses current labeler counts only. The 12-month drop adjustment needs archived GUDID releases and is not applied yet.</li>
+      </ul>
+    </div></div>
+    <div class="panel"><div class="ph"><h3>Run log</h3><span class="note mono" id="runid"></span></div><div class="tablewrap"><table>
+      <thead><tr><th>Source</th><th>Endpoint or page</th><th>Coverage in this run</th><th>Status</th></tr></thead>
+      <tbody id="log-body"></tbody></table></div></div>
+    <div class="panel" id="history-panel" hidden><div class="ph"><h3>Run history</h3><span class="note">One automated scoring run per month</span></div><div class="tablewrap"><table>
+      <thead><tr><th>Scoring month</th><th>Run date</th><th>Highest score</th><th>Convergence</th><th>Config</th></tr></thead>
+      <tbody id="history-body"></tbody></table></div></div>
+    <div class="panel"><div class="ph"><h3>Warnings recorded in this run</h3></div><div class="pb"><ul class="clean" id="warn"></ul></div></div>
+  </div>
+</section>
+
+</div></main>
+
+<footer><div class="wrap">
+  <span>CrossWatch Health is an independent research and development project led by Qasim T. Arigbabu. It is not a company and does not sell products or services. Public data only.</span>
+  <span>Sources: <a href="https://open.fda.gov/apis/device/event/" target="_blank" rel="noopener">openFDA device adverse events</a>, <a href="https://open.fda.gov/apis/device/recall/" target="_blank" rel="noopener">device recalls</a>, <a href="https://open.fda.gov/apis/device/enforcement/" target="_blank" rel="noopener">device enforcement</a>, <a href="https://open.fda.gov/apis/device/udi/" target="_blank" rel="noopener">device UDI (GUDID)</a>, <a href="https://www.fda.gov/medical-devices/medical-device-supply-chain-and-shortages/medical-device-shortages-list" target="_blank" rel="noopener">FDA Medical Device Shortages List</a>.</span>
+</div></footer>
+
+<script>
+/*ENGINE START*/
+let CONFIG={version:"0.1",scoreMonth:"2026-09",runDate:"2026-11-02",provisional:["2026-08","2026-09"],
+  w:{s1:.5,s2:.2,s3:.3,s4:.6,s5:.4},s1:{z:2,min:5,base:24,cur:3,minHist:12,minBase:30,poissonBelow:10},
+  s2:{pp:10,minDI:5},s3:{w:{I:3,II:2,III:1,U:2},thr:4,div:8,classIMin:.75},tiers:{high:60,elev:35,watch:15},conv:.5};
+
+function series(start,vals){let[y,m]=start.split("-").map(Number);const o={};for(const v of vals){o[`${y}-${String(m).padStart(2,"0")}`]=v;m++;if(m===13){y++;m=1}}return o}
+let CATS={
+ KNW:{name:"Stereotactic breast biopsy needles",spec:"General and plastic surgery",list:{on:"2026-03-13",off:null},est:"Through Q1 2027",
+  ae:series("2022-01",[44,57,51,38,32,43,40,36,57,56,41,40,31,74,68,58,59,75,52,58,67,142,95,152,159,101,59,104,76,156,89,128,157,71,66,117,82,137,121,140,128,97,154,187,159,155,126,209,297,316,227,259,270,262,264,282,699]),
+  s2:[169,2036,516,3499],labelers:67,top:[["Zhejiang CuraWay Medical Technology",910],["Canyon Medical",638],["Medax",450],["Argon Medical Devices",427],["Biopsybell",422]],devices:5701,
+  rec:[["95119","2024-07-02","U","",""],["95491","2024-09-30","U","Bard Peripheral Vascular","Instruments possibly made without the backend notch"],["96075","2025-01-15","U","Hologic","Inner needle separated from the hub"],["98172","2025-12-15","II","Hologic","Particulates that could be deposited into breast tissue"],["99069","2026-06-01","I","Argon Medical Devices","Kits contain lidocaine ampules subject to a separate recall"],["99590","2026-08-20","II","",""]]},
+ DTZ:{name:"Oxygenators, cardiopulmonary bypass",spec:"Cardiovascular",list:{on:"2023-09-11",off:null},est:"Through Q1 2027",deep:"live",
+  ae:series("2022-01",[32,28,76,40,54,36,43,48,38,33,55,76,67,50,49,65,71,150,52,67,50,38,45,34,46,47,41,55,53,34,45,29,31,58,56,40,49,59,70,75,67,56,79,102,80,106,121,123,159,100,123,106,84,116,542,91,78]),
+  s2:[57,1017,235,1770],labelers:17,top:[["Medtronic",1428],["Sorin Group Italia",57],["Maquet Cardiopulmonary",41],["Terumo Cardiovascular Systems",35],["Terumo Corporation",33]],devices:1665,
+  rec:[["91343","2022-12-12","U","Medtronic Perfusion Systems","Upward complaint trend on the temperature monitoring adapter"],["","2024-01-16","U","",""],["97702","2025-09-12","U","Medtronic Perfusion Systems","Oxygenator unit with decreased CO2 gas transfer"]]},
+ DXT:{name:"Angiographic control syringes",spec:"Cardiovascular",list:{on:"2026-03-13",off:"2026-10-26"},est:"Removed 2026-10-26",
+  ae:series("2022-01",[10,10,8,16,9,13,6,11,6,7,8,7,6,5,4,9,12,5,7,7,27,8,15,12,17,4,10,8,9,4,7,14,9,8,8,20,9,8,16,4,6,7,6,10,9,7,5,10,14,39,29,8,5,6,2,8,6]),
+  s2:[21,35,93,266],labelers:34,top:[["Shenzhen Boon Medical Supply",370],["Bayer Medical Care",257],["Merit Medical Systems",177],["DeRoyal Industries",138],["ACIST Medical Systems",133]],devices:1743,
+  rec:[["94583","2024-04-08","U","",""],["95343","2024-08-19","U","",""],["95330","2024-08-30","U","Merit Medical Systems","Holes in the Tyvek sterile barrier"],["98599","2026-02-25","II","",""],["98598","2026-02-27","I","",""],["98881","2026-04-24","II","",""],["99698","2026-07-31","II","",""]]},
+ GEI:{name:"Electrosurgical cutting and coagulation devices (incl. endoscopic vessel harvesting)",spec:"General and plastic surgery",list:{on:"2024-11-15",off:null},est:"Through Q1 2027",
+  ae:series("2022-01",[394,479,523,520,508,597,402,549,569,555,493,514,592,543,625,529,631,612,573,618,584,694,572,603,767,653,777,739,706,624,666,613,623,631,537,562,613,552,672,678,532,691,693,618,620,699,571,741,523,649,701,594,599,652,618,595,756]),
+  s2:[489,3814,2424,15254],labelers:100,labelersPlus:true,top:[["National Advanced Endoscopy Devices",5894],["Surgical Direct",5729],["Stingray Surgical Products",4647],["Elmed",2724],["Avalign Technologies",2289]],devices:48136,
+  rec:[["95434","2024-09-20","U","Maquet Cardiovascular","Silicone detaching from the jaws of the harvesting tool"],["97833","2025-10-31","II","Stryker","Packaging tape contains latex despite latex-free labeling"],["98454","2026-02-25","II","",""],["98550","2026-03-23","II","",""],["99259","2026-06-02","II","",""],["99340","2026-06-08","II","",""],["99607","2026-08-18","II","",""]]},
+ BYS:{name:"Oxygenators, long-term support over 6 hours",spec:"Cardiovascular",list:{on:"2023-09-11",off:null},est:"Through Q1 2027",deep:"live",
+  ae:series("2022-01",[0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,3,3,2,3,4,3,2,3,1,4,2,0,4,0,1,0,14,8,5,3,2,3,4,7,3,9,7,4,8,5,5,7,6,4,6,4,1,4,0,2]),
+  s2:[0,17,20,111],labelers:2,top:[["Michigan Critical Care Consultants",10],["Xenios",1]],devices:11,
+  rec:[["94016","2023-10-11","U","Mc3","Restricted water path in the heat exchanger"]]},
+ HBA:{name:"Neurosurgical patties, sponges and strips",spec:"Neurology",list:{on:"2026-05-06",off:null},est:"Through Q4 2026",
+  ae:series("2022-01",[6,3,2,3,3,2,1,0,2,3,2,1,2,2,4,3,2,2,2,4,4,2,0,2,1,5,1,0,0,0,2,5,0,5,3,5,0,0,2,1,0,0,0,0,0,1,0,1,2,1,0,1,9,2,0,0,1]),
+  s2:[9,13,17,28],labelers:8,top:[["OMT",163],["American Surgical Company",152],["Medtronic Xomed",98],["Integra LifeSciences",43],["Cerenovus",42]],devices:554,
+  rec:[["95464","2024-09-18","U","",""],["95432","2024-09-20","U","Integra LifeSciences","High endotoxin in a raw material"],["98664","2026-03-19","II","",""]]},
+ FJK:{name:"Hemodialysis bloodlines",spec:"Gastroenterology and urology",list:{on:"2025-03-01",onApprox:true,off:"2026-06-16"},est:"Removed 2026-06-16",deep:"completed, quality-related",
+  ae:series("2022-01",[10,22,20,19,25,21,22,45,61,55,28,34,15,39,49,89,98,60,52,36,26,43,45,33,48,19,51,18,29,36,23,58,20,52,30,33,41,32,34,19,47,61,60,424,302,215,155,104,151,133,53,89,85,321,327,104,56]),
+  s2:[22,982,60,2130],labelers:24,top:[["ICU Medical",58],["B. Braun Medical",18],["Fresenius Medical Care Holdings",15],["Nipro Medical",14],["Fresenius Medical Care Renal Therapies",13]],devices:194,
+  rec:[["87739","2021-04-14","U","Baxter Healthcare","Possible leak at the venous patient connector"],["95171","2024-08-15","II","B. Braun Medical","Incomplete insertion of the patient connector"],["97609","2025-09-30","I","B. Braun Medical","Micro air bubbles and air-in-line alarms from damaged components"],["98552","2026-03-19","I","B. Braun Medical","Small air bubbles accumulating in the arterial line"],["99700","2026-07-29","II","",""]]},
+ LNQ:{name:"Implantable gastric electrical stimulation systems",spec:"Gastroenterology and urology",list:{on:"2026-10-26",off:null},est:"Added 2026-10-26, after the scoring month",
+  ae:series("2022-01",[17,14,11,12,19,17,15,11,18,14,14,23,30,22,32,14,16,5,4,1,3,16,4,18,8,11,10,12,18,5,26,12,13,23,8,14,11,10,11,6,22,20,19,12,20,18,17,16,16,13,13,8,37,14,15,16,13]),
+  s2:[88,103,291,355],labelers:2,top:[["Medtronic",19],["Enterra Medical",1]],devices:20,rec:[]},
+ MDB:{name:"Blood culturing systems (BD BACTEC bottles)",spec:"Microbiology",list:{on:"2024-07-10",off:null,offUnknown:true},est:"Removal date not confirmed",deep:"completed, supply-driven",
+  ae:series("2020-01",[2,2,2,4,3,3,1,2,5,4,3,6,31,100,83,83,81,89,86,118,123,147,128,115,89,54,96,85,73,64,25,31,27,42,17,40,18,24,60,107,30,84,25,53,161,373,220,77,28,37,38,37,29,26,21,29,28,38,62,28,19,30,17,53,124,20,1013,323,254,18,105,7,14,17,67,31,13,33,19,68,25]),
+  s2:[1,189,17,2379],labelers:3,top:[["Becton, Dickinson and Company",46],["Remel",28],["bioMerieux",21]],devices:95,
+  rec:[["93097","2023-09-12","II","Becton Dickinson","Labeling issue with duplicate barcodes on some vials"],["95636","2024-10-31","U","Becton Dickinson",""],["97479","2025-09-23","U","Becton Dickinson","Service credentials used by support teams (software security)"]]}
+};
+
+const mk=m=>{let[y,mo]=m.split("-").map(Number);return{y,mo}};
+const back=(m,n)=>{let{y,mo}=mk(m);mo-=n;while(mo<=0){y--;mo+=12}return `${y}-${String(mo).padStart(2,"0")}`};
+const fwd=(m,n)=>{let{y,mo}=mk(m);mo+=n;while(mo>12){y++;mo-=12}return `${y}-${String(mo).padStart(2,"0")}`};
+const mean=a=>a.reduce((s,x)=>s+x,0)/a.length;
+const psd=a=>{const u=mean(a);return Math.sqrt(a.reduce((s,x)=>s+(x-u)**2,0)/a.length)};
+
+function S1(c,M){
+  const s=CATS[c].ae,C=CONFIG.s1;
+  const hist=Object.keys(s).filter(k=>k<=M);
+  const cur=[0,1,2].map(i=>s[back(M,i)]).filter(v=>v!==undefined);
+  const base=[];for(let i=C.cur;i<C.cur+C.base;i++){const v=s[back(M,i)];if(v!==undefined)base.push(v)}
+  const bsum=base.reduce((a,b)=>a+b,0);
+  if(hist.length<C.minHist||cur.length<3||base.length<12||bsum<C.minBase)return{status:"insufficient",comp:0,elev:false,cur:cur.length===3?mean(cur):null,mu:base.length?mean(base):null};
+  const mu=mean(base),sd=psd(base),c3=mean(cur);let z,method;
+  if(mu<C.poissonBelow||sd===0){z=(c3*3-3*mu)/Math.sqrt(3*mu);method="Poisson"}else{z=(c3-mu)/sd;method="z-score"}
+  const elev=z>=C.z&&c3>=C.min;
+  return{status:"ok",z,mu,sd,cur:c3,method,elev,comp:elev?Math.min(1,z/(2*C.z)):0};
+}
+function S2(c){const[rd,rt,pd,pt]=CATS[c].s2,C=CONFIG.s2;const r=rt?rd/rt*100:0,p=pt?pd/pt*100:0,d=r-p;const elev=d>=C.pp&&rd>=C.minDI;return{r,p,d,di:rd,elev,comp:elev?Math.min(1,d/(2*C.pp)):0}}
+function S3(c,M){const C=CONFIG.s3,lo=back(M,11);const ev=CATS[c].rec.filter(e=>e[1].slice(0,7)>=lo&&e[1].slice(0,7)<=M);
+  const wc=ev.reduce((s,e)=>s+C.w[e[2]],0),c1=ev.some(e=>e[2]==="I");let comp=Math.min(1,wc/C.div);if(c1)comp=Math.max(comp,C.classIMin);
+  return{ev,wc,c1,elev:c1||wc>=C.thr,comp}}
+function S4(c,M){const L=CATS[c].list,end=M+"-31";
+  if(L.on&&L.on<=end&&!L.offUnknown&&(!L.off||L.off>end))return{v:1,label:"On shortage list"};
+  if(L.off&&L.off<=end&&L.off.slice(0,7)>back(M,12))return{v:.4,label:"Removed in last 12 months"};
+  return{v:0,label:L.on&&L.on>end?"Not yet listed":L.offUnknown?"Off list (removal date unconfirmed)":"Not listed"}}
+const S5=n=>n===1?1:n===2?.7:n<=4?.4:.1;
+function score(c,M){
+  const W=CONFIG.w,a=S1(c,M),b=S2(c),r=S3(c,M),l=S4(c,M),s5=S5(CATS[c].labelers);
+  const safety=W.s1*a.comp+W.s2*b.comp+W.s3*r.comp,supply=W.s4*l.v+W.s5*s5;
+  const sc=100*(.5*safety+.5*supply),conv=safety>=CONFIG.conv&&supply>=CONFIG.conv;
+  const T=CONFIG.tiers,tier=sc>=T.high||conv?"High":sc>=T.elev?"Elevated":sc>=T.watch?"Watch":"Low";
+  return{c,a,b,r,l,s5,safety,supply,score:sc,conv,tier};
+}
+function retro(c,from,to){const out=[];let m=from;const W=CONFIG.w;
+  while(m<=to){const a=S1(c,m),r=S3(c,m),s5=S5(CATS[c].labelers);
+    const safety=W.s1*a.comp+W.s3*r.comp,supply=W.s5*s5;
+    out.push({m,ae:CATS[c].ae[m],z:a.z,s1:a.elev,s3:r.elev,score:100*(.5*safety+.5*supply)});m=fwd(m,1)}
+  return out}
+/*ENGINE END*/
+
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch]));
+let M=CONFIG.scoreMonth;
+const MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const fmtM=m=>{const{y,mo}=mk(m);return `${MON[mo-1]} ${y}`};
+let SC=Object.keys(CATS).map(c=>score(c,M)).sort((a,b)=>b.score-a.score);
+// Notes for the embedded September 2026 data. data/latest.json replaces them.
+let EXTRA={callouts:[{title:"List changed after the scoring month",text:"FDA's list removed DXT (2026-10-26) and added LNQ (2026-10-26). The next run reflects these changes."}],
+  warnings:["FJK listing date is known to the month (March 2025) from news coverage of the list, not from an archived FDA page.",
+    "MDB (blood culturing systems) is used as the BD BACTEC product code. It covers all blood culturing systems, not only BACTEC bottles, and its removal date from the list is not yet confirmed.",
+    "The PRD names GEI as endoscopic vessel harvesting devices. FDA's list now describes GEI as electrosurgical cutting and coagulation devices and accessories.",
+    "DTZ shows a single-month spike in 2026-07 (542 reports against a typical 77). It may be summary malfunction reports and should be checked in MAUDE before review."],
+  listCapture:"2026-10-26",runLog:null,source:"embedded"};
+
+function drivers(s){
+  const d=[];
+  if(s.a.elev)d.push(["s",`Adverse events z = ${s.a.z.toFixed(1)}`]);
+  if(s.b.elev)d.push(["s",`Death and injury share +${s.b.d.toFixed(0)} pts`]);
+  if(s.r.elev)d.push(["s",s.r.c1?"Class I recall, 12 mo":`Recalls weighted ${s.r.wc}, 12 mo`]);
+  if(s.l.v>0)d.push(["p",s.l.label]);
+  if(s.s5>=.4)d.push(["p",`${CATS[s.c].labelers} active labelers`]);
+  return d;
+}
+const convIcon=on=>`<svg viewBox="0 0 22 14" aria-hidden="true"><circle cx="8" cy="7" r="5.5" fill="${on?"var(--safety)":"none"}" stroke="var(--safety)" stroke-width="1.5" opacity="${on?.9:.5}"/><circle cx="14" cy="7" r="5.5" fill="${on?"var(--supply)":"none"}" stroke="var(--supply)" stroke-width="1.5" opacity="${on?.9:.5}"/></svg>`;
+
+function renderRanking(){
+  $("#rank-body").innerHTML=SC.map((s,i)=>{const C=CATS[s.c];const d=drivers(s);
+    return `<tr class="rowlink" data-go="${s.c.toLowerCase()}" tabindex="0"><td class="num">${i+1}</td>
+    <td><a class="cat" href="#${s.c.toLowerCase()}">${esc(C.name)}</a> <span class="code">${s.c}</span><div class="sub">${esc(C.spec)}${C.deep?` · deep dive: ${C.deep}`:""}</div></td>
+    <td><span class="pill t-${s.tier}">${s.tier}</span></td>
+    <td><div class="scorecell"><b>${Math.round(s.score)}</b><div class="stack" title="Safety ${(50*s.safety).toFixed(0)} + supply ${(50*s.supply).toFixed(0)}"><i class="s" style="width:${50*s.safety}%"></i><i class="p" style="width:${50*s.supply}%"></i></div></div></td>
+    <td><span class="conv">${convIcon(s.conv)}${s.conv?"Raised":"No"}</span></td>
+    <td class="drivers">${d.length?d.map(([k,t])=>`<span class="dv-${k}">${esc(t)}</span>`).join(""):`<span class="sub">No signal above threshold</span>`}</td>
+    <td><span class="sub">${esc(s.l.label)}</span></td></tr>`}).join("");
+  const conv=SC.filter(s=>s.conv);
+  $("#callouts").innerHTML=`
+    <div class="callout"><b>${conv.length?`${conv.length} ${conv.length===1?"category":"categories"} with convergence`:"No convergence this month"}</b><span>${conv.length?`${conv.map(s=>`${esc(CATS[s.c].name)} (${s.c})`).join("; ")}. Safety and supply subscores are both at 0.5 or more in ${fmtM(M)}.`:`No category has both subscores at 0.5 or more in ${fmtM(M)}.`}</span></div>
+    ${EXTRA.callouts.map(c=>`<div class="callout"><b>${esc(c.title)}</b><span>${esc(c.text)}</span></div>`).join("")}
+    <div class="callout"><b>Latest months are provisional</b><span>${CONFIG.provisional.map(fmtM).join(" and ")} adverse event counts are still filling in because of the reporting lag. Single-month spikes may be summary reports and are checked before review.</span></div>`;
+}
+
+function aeChart(c,opts={}){
+  const C=CATS[c],keys=Object.keys(C.ae).filter(k=>k>=(opts.from||"2022-01")&&k<=(opts.to||M));
+  const W=760,H=250,L=40,R=10,T=14,B=38,n=keys.length,bw=(W-L-R)/n;
+  const mx=Math.max(...keys.map(k=>C.ae[k]));const nice=v=>{const p=Math.pow(10,Math.floor(Math.log10(v)));for(const f of[1,2,2.5,5,10])if(f*p>=v)return f*p;return 10*p};
+  const top=nice(mx||1),ticks=[0,top/2,top];const y=v=>T+(H-T-B)*(1-v/top);const x=i=>L+i*bw;
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Monthly adverse event reports for ${esc(C.name)}">`;
+  // shortage band
+  const L0=C.list.on?C.list.on.slice(0,7):null,L1=C.list.off?C.list.off.slice(0,7):null;
+  if(L0){const i0=keys.indexOf(L0),start=i0>=0?i0:(L0<keys[0]?0:-1);
+    if(start>=0){const iEnd=L1&&keys.indexOf(L1)>=0?keys.indexOf(L1)+1:(L1&&L1<keys[0]?start:(C.list.offUnknown?start+3:n));
+      s+=`<rect x="${x(start)}" y="${T}" width="${Math.max(0,(iEnd-start)*bw)}" height="${H-T-B}" fill="var(--band)"/>`;
+      s+=`<line x1="${x(start)}" x2="${x(start)}" y1="${T-4}" y2="${H-B}" stroke="var(--supply)" stroke-width="1.5" stroke-dasharray="3 3"/><text x="${x(start)+4}" y="${T+8}" style="fill:var(--supply)">Listed ${C.list.onApprox?fmtM(L0):C.list.on}</text>`;
+      if(L1&&keys.indexOf(L1)>=0)s+=`<line x1="${x(iEnd)}" x2="${x(iEnd)}" y1="${T-4}" y2="${H-B}" stroke="var(--supply)" stroke-width="1.5"/><text x="${x(iEnd)-4}" y="${T+8}" text-anchor="end" style="fill:var(--supply)">Removed ${C.list.off}</text>`;
+    }}
+  ticks.forEach(t=>{s+=`<line x1="${L}" x2="${W-R}" y1="${y(t)}" y2="${y(t)}" stroke="var(--line)"/><text x="${L-6}" y="${y(t)+3}" text-anchor="end">${t}</text>`});
+  keys.forEach((k,i)=>{const v=C.ae[k],prov=CONFIG.provisional.includes(k);
+    s+=`<rect x="${(x(i)+bw*.12).toFixed(1)}" y="${y(v).toFixed(1)}" width="${(bw*.76).toFixed(1)}" height="${(y(0)-y(v)).toFixed(1)}" fill="var(--safety)" opacity="${prov?.4:.85}"><title>${fmtM(k)}: ${v} reports${prov?" (provisional)":""}</title></rect>`;
+    const{mo,y:yy}=mk(k);if(mo===1)s+=`<text x="${(x(i)+bw/2).toFixed(1)}" y="${H-B+14}" text-anchor="middle">${yy}</text>`;});
+  // recall markers
+  C.rec.forEach(e=>{const i=keys.indexOf(e[1].slice(0,7));if(i<0)return;const cx=x(i)+bw/2,cy=H-B+26;
+    const col=e[2]==="I"?"var(--high)":e[2]==="II"?"var(--elev)":"var(--muted)";
+    s+=`<path d="M${cx} ${cy-6} L${cx+5} ${cy+3} L${cx-5} ${cy+3} Z" fill="${col}"><title>Recall ${e[0]||"event"} ${e[1]}, ${e[2]==="U"?"class not resolved":"Class "+e[2]}</title></path>`});
+  return s+`</svg>`;
+}
+
+function renderDetail(c){
+  const s=SC.find(x=>x.c===c),C=CATS[c];
+  const sig=[
+    ["s","S1","Adverse event trend",s.a.status==="insufficient"?"Insufficient data":`${s.a.method} ${s.a.z.toFixed(2)}; current ${s.a.cur.toFixed(1)}/mo vs baseline ${s.a.mu.toFixed(1)}`,s.a.elev,s.a.comp,CONFIG.w.s1],
+    ["s","S2","Severity mix",`${s.b.r.toFixed(1)}% death or injury, last 6 mo, vs ${s.b.p.toFixed(1)}% (${s.b.d>=0?"+":""}${s.b.d.toFixed(1)} pts; ${s.b.di} reports)`,s.b.elev,s.b.comp,CONFIG.w.s2],
+    ["s","S3","Recall activity",`${s.r.ev.length} event${s.r.ev.length===1?"":"s"} in 12 mo, weighted ${s.r.wc}${s.r.c1?", includes Class I":""}`,s.r.elev,s.r.comp,CONFIG.w.s3],
+    ["p","S4","List status",s.l.label,s.l.v>0,s.l.v,CONFIG.w.s4],
+    ["p","S5","Supply concentration",`${C.labelersPlus?"100 or more":C.labelers} labelers in commercial distribution`,s.s5>=.4,s.s5,CONFIG.w.s5]];
+  const share=C.top.length?Math.round(C.top[0][1]/C.devices*100):0;
+  $("#v-detail").innerHTML=`<div style="display:flex;flex-direction:column;gap:18px">
+    <a class="back" href="#ranking">&larr; All categories</a>
+    <div class="dhead"><div><h2>${esc(C.name)} <span class="code">${c}</span></h2><p class="lede">${esc(C.spec)}. FDA estimate: ${esc(C.est)}.${C.deep?` Deep dive: ${esc(C.deep)}.`:""}</p></div>
+      <div class="big"><b>${Math.round(s.score)}</b><span class="pill t-${s.tier}">${s.tier}</span><span class="conv">${convIcon(s.conv)}${s.conv?"Convergence raised":"No convergence"}</span></div></div>
+    <div class="grid2">
+      <div class="panel"><div class="ph"><h3>Monthly adverse event reports</h3><span class="note">${fmtM(Object.keys(C.ae).filter(k=>k>="2022-01")[0])} to ${fmtM(M)}</span></div>
+        <div class="chart">${aeChart(c)}</div>
+        <div class="pb" style="padding-top:0"><div class="key"><span><i style="background:var(--safety)"></i>Reports received</span><span><i style="background:var(--safety);opacity:.4"></i>Provisional month</span><span><i style="background:var(--band);border:1px solid var(--supply)"></i>On shortage list</span><span><i style="background:var(--high)"></i>Class I recall</span><span><i style="background:var(--elev)"></i>Class II</span><span><i style="background:var(--muted)"></i>Class not resolved</span></div></div></div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="subs">
+          <div class="subbox s"><div class="lbl">Safety subscore</div><div class="val">${s.safety.toFixed(2)}</div><div class="meter"><i style="width:${s.safety*100}%;background:var(--safety)"></i><span class="tick" title="0.5 convergence line"></span></div></div>
+          <div class="subbox p"><div class="lbl">Supply subscore</div><div class="val">${s.supply.toFixed(2)}</div><div class="meter"><i style="width:${s.supply*100}%;background:var(--supply)"></i><span class="tick" title="0.5 convergence line"></span></div></div>
+        </div>
+        <div class="panel"><div class="ph"><h3>Supplier concentration</h3></div><div class="pb" style="display:flex;flex-direction:column;gap:8px">
+          <p class="note" style="margin:0">Top labelers by device identifiers in commercial distribution. The largest holds ${share}% of ${C.devices.toLocaleString()} identifiers. Labeler counts approximate, but do not measure, manufacturing capacity.</p>
+          ${C.top.map(([n,v])=>`<div style="display:grid;grid-template-columns:minmax(0,1fr) 60px;gap:8px;align-items:center;font-size:.86rem"><div style="min-width:0"><div>${esc(n)}</div><div class="meter" style="margin-top:3px"><i style="width:${v/C.devices*100}%;background:var(--supply)"></i></div></div><span class="num mono" style="text-align:right">${v.toLocaleString()}</span></div>`).join("")}
+        </div></div>
+      </div>
+    </div>
+    <div class="panel"><div class="ph"><h3>Score breakdown, ${fmtM(M)}</h3><span class="note">Contribution = weight x component x 50</span></div><div class="tablewrap"><table>
+      <thead><tr><th>Signal</th><th>Value</th><th>Status</th><th class="num">Component</th><th class="num">Weight</th><th class="num">Points</th></tr></thead>
+      <tbody>${sig.map(([k,id,n,v,e,comp,w])=>`<tr><td><span class="pill dv-${k}">${id}</span> ${n}</td><td>${esc(v)}</td><td class="flag ${e&&k==="s"?"on":""}">${k==="p"?(comp>0?"Active":"None"):(e?"Elevated":"Below threshold")}</td><td class="num">${comp.toFixed(2)}</td><td class="num">${w}</td><td class="num">${(w*comp*50).toFixed(1)}</td></tr>`).join("")}
+      <tr><td colspan="5"><strong>Combined score</strong></td><td class="num"><strong>${s.score.toFixed(1)}</strong></td></tr></tbody></table></div></div>
+    <div class="grid2">
+      <div class="panel"><div class="ph"><h3>Recall events since ${c==="MDB"?"2020":"2021"}</h3></div><div class="tablewrap"><table>
+        <thead><tr><th>Event</th><th>Initiated</th><th>Class</th><th>Firm</th><th>Reason</th></tr></thead>
+        <tbody>${C.rec.length?C.rec.slice().reverse().map(e=>`<tr><td class="mono">${e[0]||"n/a"}</td><td class="mono">${e[1]}</td><td>${e[2]==="U"?`<span class="sub">Not resolved</span>`:`<span class="pill ${e[2]==="I"?"t-High":"t-Elevated"}">Class ${e[2]}</span>`}</td><td>${esc(e[3]||"Not loaded")}</td><td>${e[4]?esc(e[4]):`<span class="sub">Not loaded in this snapshot</span>`}</td></tr>`).join(""):`<tr><td colspan="5" class="sub">No recall events in the openFDA recall data for this product code since 2022.</td></tr>`}</tbody></table></div></div>
+      <div class="panel"><div class="ph"><h3>Review note</h3><span class="pill t-Low">Generated from rules</span></div><div class="pb" style="display:flex;flex-direction:column;gap:10px">
+        <p class="note" style="margin:0" id="ai-hint">Writes a short note for a supply chain or quality reviewer from this category's signals, and groups its recall reasons into themes. It runs in the page from fixed rules, restates the data above, and makes no recommendations.</p>
+        <div><button class="btn" id="ai-btn" type="button">Generate review note</button></div>
+        <div class="ai-out" id="ai-out" aria-live="polite"></div>
+      </div></div>
+    </div>
+  </div>`;
+  wireAI(c,s);
+}
+
+// Review note generator. Rule-based and deterministic: it restates the computed
+// signals and sorts recall reasons into themes by keyword. No external calls.
+const THEMES=[
+  ["Kit components recalled elsewhere",/separate recall|another recall|ampule|\bkits?\b/i],
+  ["Sterility and contamination",/steril|endotoxin|contamin|particulate|tyvek|barrier/i],
+  ["Air in the blood path",/air|bubble/i],
+  ["Leaks and connections",/leak|connector|insertion/i],
+  ["Labeling and materials",/label|latex|barcode/i],
+  ["Component or manufacturing defects",/separat|missing|notch|detach|damag|restrict|manufactur|component/i],
+  ["Performance",/transfer|temperature|gas|heat/i],
+  ["Software and access",/software|credential/i]];
+function themeOf(reason){const t=THEMES.find(([,re])=>re.test(reason));return t?t[0]:"Other"}
+function reviewNote(c,s){
+  const C=CATS[c],lines=[];
+  const why=[];
+  if(s.a.elev)why.push(`adverse event reports averaged ${s.a.cur.toFixed(0)} a month over the last three months, against a baseline of ${s.a.mu.toFixed(0)} (${s.a.method} ${s.a.z.toFixed(1)})`);
+  if(s.b.elev)why.push(`the death and injury share rose to ${s.b.r.toFixed(0)}% from ${s.b.p.toFixed(0)}%`);
+  if(s.r.elev)why.push(`${s.r.ev.length} recall event${s.r.ev.length===1?"":"s"} in the last 12 months${s.r.c1?", including a Class I recall":""}`);
+  if(s.l.v>0)why.push(s.l.label.toLowerCase());
+  if(s.s5>=.4)why.push(`only ${C.labelers} labelers have devices in commercial distribution`);
+  lines.push(`${C.name} (${c}) scored ${Math.round(s.score)}, tier ${s.tier}, in ${fmtM(M)}${s.conv?", with safety and supply signals elevated together":""}. `+
+    (why.length?`Drivers: ${why.join("; ")}.`:"No signal is above its threshold."));
+  const withReason=C.rec.filter(e=>e[4]);
+  if(withReason.length){
+    const g={};withReason.forEach(e=>{const t=themeOf(e[4]);(g[t]=g[t]||[]).push(e)});
+    lines.push(`Recall themes, from ${withReason.length} recall${withReason.length===1?"":"s"} with a reason on file:`);
+    Object.entries(g).sort((a,b)=>b[1].length-a[1].length).slice(0,3).forEach(([t,ev])=>
+      lines.push(`- ${t}: ${ev.map(e=>`${e[3]||"firm not loaded"}, ${e[1]}${e[2]==="I"?" (Class I)":""}`).join("; ")}`));
+  }else lines.push("No recall reasons are on file for this category in the current snapshot.");
+  const next=[];
+  const recent=[0,1,2].map(i=>back(M,i));
+  const spike=recent.find(m=>C.ae[m]>2.5*(s.a.mu||Infinity));
+  if(spike)next.push(`check whether the ${fmtM(spike)} count reflects summary malfunction reports`);
+  const c1=s.r.ev.filter(e=>e[2]==="I");
+  if(c1.length)next.push(`read the Class I recall notice${c1.length>1?"s":""} (event ${c1.map(e=>e[0]).join(", ")}) and the affected lots`);
+  if(s.b.elev)next.push("read MAUDE narratives for the recent death and injury reports");
+  if(s.l.v>0&&s.s5>=.4)next.push("confirm which labelers are still shipping");
+  lines.push(`Check next: ${next.length?next.join("; "):"no follow-up beyond the next monthly run"}.`);
+  if(recent.some(m=>CONFIG.provisional.includes(m))&&s.a.status==="ok")lines.push(`${CONFIG.provisional.map(fmtM).join(" and ")} counts are provisional and may rise.`);
+  lines.push("This note is a prompt for expert review, not a safety finding, shortage forecast or purchasing advice.");
+  return lines.join("\n");
+}
+function wireAI(c,s){
+  const btn=$("#ai-btn"),out=$("#ai-out");if(!btn)return;
+  btn.onclick=()=>{out.textContent=reviewNote(c,s);btn.textContent="Regenerate note"};
+}
+
+function retroChart(c,rows,listM){
+  const W=760,H=200,L=40,R=10,T=14,B=30,n=rows.length,bw=(W-L-R)/n,top=50;
+  const y=v=>T+(H-T-B)*(1-Math.min(v,top)/top),x=i=>L+i*bw;
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Score without list status, month by month">`;
+  [0,25,50].forEach(t=>{s+=`<line x1="${L}" x2="${W-R}" y1="${y(t)}" y2="${y(t)}" stroke="var(--line)"/><text x="${L-6}" y="${y(t)+3}" text-anchor="end">${t}</text>`});
+  s+=`<line x1="${L}" x2="${W-R}" y1="${y(35)}" y2="${y(35)}" stroke="var(--elev)" stroke-dasharray="4 3"/><text x="${W-R}" y="${y(35)-4}" text-anchor="end" style="fill:var(--elev)">Elevated 35</text>`;
+  const li=rows.findIndex(r=>r.m===listM);
+  if(li>=0)s+=`<line x1="${x(li)}" x2="${x(li)}" y1="${T-4}" y2="${H-B}" stroke="var(--supply)" stroke-width="2"/><text x="${x(li)+4}" y="${T+6}" style="fill:var(--supply)">Official listing</text>`;
+  rows.forEach((r,i)=>{const col=r.s1&&r.s3?"var(--high)":r.s1||r.s3?"var(--safety)":"var(--muted)";
+    s+=`<rect x="${(x(i)+bw*.15).toFixed(1)}" y="${y(r.score).toFixed(1)}" width="${(bw*.7).toFixed(1)}" height="${(y(0)-y(r.score)).toFixed(1)}" fill="${col}" opacity="${r.s1||r.s3?.9:.45}"><title>${fmtM(r.m)}: score ${r.score.toFixed(1)}${r.s1?", S1 elevated":""}${r.s3?", S3 elevated":""}</title></rect>`;
+    const{mo,y:yy}=mk(r.m);if(mo===1)s+=`<text x="${(x(i)+bw/2).toFixed(1)}" y="${H-B+14}" text-anchor="middle">${yy}</text>`});
+  return s+`</svg>`;
+}
+function renderRetro(){
+  const cases=[["FJK","2025-03","2024-03",M],["MDB","2024-07","2022-03","2025-06"]];
+  $("#retro").innerHTML=cases.map(([c,listM,from,to])=>{
+    const rows=retro(c,from,to);
+    const first=k=>{const r=rows.find(r=>r[k]);return r?r.m:null};
+    const diff=(a,b)=>{const A=mk(a),B=mk(b);return (B.y-A.y)*12+(B.mo-A.mo)};
+    const lead=m=>{if(!m)return "Did not cross";const d=diff(m,listM);return d>0?`${d} months before listing`:d===0?"Same month as listing":`${-d} months after listing`};
+    const f1=first("s1"),f3=first("s3");
+    return `<div class="panel" style="margin-bottom:18px"><div class="ph"><div><h3>${esc(CATS[c].name)} <span class="code">${c}</span></h3><div class="sub" style="margin-top:2px">Official listing ${fmtM(listM)}${CATS[c].list.onApprox?" (month only, from the list history)":""} · ${esc(CATS[c].deep)}</div></div></div>
+      <div class="pb"><div class="result">
+        <div><span>S1 adverse event trend</span><b>${f1?fmtM(f1):"Never"}</b><span>${lead(f1)}</span></div>
+        <div><span>S3 recall activity</span><b>${f3?fmtM(f3):"Never"}</b><span>${lead(f3)}</span></div>
+        <div><span>S2 severity mix</span><b>Not run</b><span>Monthly back-test pending</span></div>
+        <div><span>Convergence flag</span><b>Not possible</b><span>Supply subscore capped at 0.4 without S4</span></div>
+      </div></div>
+      <div class="chart">${retroChart(c,rows,listM)}</div>
+      <div class="pb" style="padding-top:0"><div class="key"><span><i style="background:var(--muted);opacity:.45"></i>No safety signal elevated</span><span><i style="background:var(--safety)"></i>One safety signal elevated</span><span><i style="background:var(--high)"></i>S1 and S3 both elevated</span><span>Bars show the score without S4, scored point in time</span></div></div></div>`}).join("");
+}
+
+function renderMethod(){
+  $("#runid").textContent=`config v${CONFIG.version} · run ${CONFIG.runDate}`;
+  const tot=Object.values(CATS).reduce((s,C)=>s+Object.entries(C.ae).filter(([k])=>k>="2022-01").reduce((a,[,v])=>a+v,0),0);
+  const recs=Object.values(CATS).reduce((s,C)=>s+C.rec.length,0);
+  const codes=Object.keys(CATS),aeKeys=codes.flatMap(c=>Object.keys(CATS[c].ae)).sort();
+  const listed=codes.filter(c=>S4(c,M).v===1).length,removed=codes.filter(c=>S4(c,M).v===.4).length;
+  const L=EXTRA.runLog;
+  const rows=[
+    ["Device adverse events","device/event.json, count by date_received",`${tot.toLocaleString()} reports since Jan 2022, ${codes.length} product codes, ${fmtM(aeKeys[0])} to ${fmtM(M)}`,`OK; ${CONFIG.provisional.map(fmtM).join(" and ")} provisional`],
+    ["Severity mix","device/event.json, count by event_type","Two windows per code for the scoring month","OK; monthly series not retrieved"],
+    ["Device recalls","device/recall.json, by product code",`${recs} recall events`,"OK"],
+    ["Recall classification","device/enforcement.json, by event_id",L?"Every recall event":"Every event in the 12-month windows used",L?"OK; events with no enforcement record weighted as unknown":"OK; older events left as unknown"],
+    ["UDI / GUDID","device/udi.json, labelers in commercial distribution","Current release only","OK; no 12-month history yet"],
+    ["Shortages List",`FDA web page, captured ${EXTRA.listCapture}`,`${listed} listed, ${removed} removed in the last 12 months`,"Kept by hand; the monthly run checks the page for updates"],
+    ["Discontinuance List","FDA web page","Not captured","Pending"]];
+  if(L)rows.push(["openFDA requests","Monthly automated run",`${L.requests} requests, ${L.not_found} with no matches`,L.errors&&L.errors.length?`${L.errors.length} errors`:"No errors"]);
+  $("#log-body").innerHTML=rows.map(r=>`<tr>${r.map((v,i)=>`<td${i===1?' class="mono" style="font-size:.78rem"':""}>${esc(v)}</td>`).join("")}</tr>`).join("");
+  $("#warn").innerHTML=EXTRA.warnings.length?EXTRA.warnings.map(t=>`<li>${esc(t)}</li>`).join(""):"<li>No warnings in this run.</li>";
+  $("#runline").innerHTML=`${$("#monthpick").hidden?`<span>Scoring month ${fmtM(M)}</span>`:""}<span>Run ${CONFIG.runDate}</span><span>Config v${CONFIG.version}</span>`;
+}
+
+// export (F11): plain browser download of the ranked scores
+(()=>{const b=$("#export");b.hidden=false;
+  b.addEventListener("click",()=>{
+    const head=["product_code","category","month","score","tier","convergence","safety_subscore","supply_subscore","S1_z","S1_component","S2_delta_pts","S2_component","S3_weighted","S3_component","S4","S5","labelers","config_version"];
+    const rows=SC.map(s=>[s.c,CATS[s.c].name,M,s.score.toFixed(1),s.tier,s.conv,s.safety.toFixed(3),s.supply.toFixed(3),s.a.z==null?"":s.a.z.toFixed(2),s.a.comp.toFixed(3),s.b.d.toFixed(1),s.b.comp.toFixed(3),s.r.wc,s.r.comp.toFixed(3),s.l.v,s.s5,CATS[s.c].labelers,CONFIG.version]);
+    const csv=[head,...rows].map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(",")).join("\n");
+    const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download=`crosswatch-scores-${M}.csv`;
+    document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+    $("#export-msg").textContent="Export downloaded.";
+  });
+})();
+
+// routing
+const VIEWS=["ranking","validation","method"];
+function route(){
+  const h=location.hash.slice(1).toLowerCase();const code=Object.keys(CATS).find(c=>c.toLowerCase()===h);
+  const v=code?"detail":VIEWS.includes(h)?h:"ranking";
+  document.querySelectorAll("[data-view]").forEach(el=>el.hidden=el.id!=="v-"+v);
+  if(code)renderDetail(code);
+  const tab=v==="detail"?"ranking":v;
+  document.querySelectorAll("nav.tabs a").forEach(a=>{if(a.getAttribute("href")==="#"+tab)a.setAttribute("aria-current","page");else a.removeAttribute("aria-current")});
+  if(code)window.scrollTo(0,0);
+}
+document.addEventListener("click",e=>{const r=e.target.closest("tr[data-go]");if(r&&!e.target.closest("a"))location.hash=r.dataset.go});
+document.addEventListener("keydown",e=>{const r=e.target.closest&&e.target.closest("tr[data-go]");if(r&&(e.key==="Enter"||e.key===" ")){e.preventDefault();location.hash=r.dataset.go}});
+addEventListener("hashchange",route);
+function renderAll(){renderRanking();renderRetro();renderMethod();route()}
+renderAll();
+
+// Month selection: data/runs.json lists every published run; data/runs/YYYY-MM.json holds each one.
+const EMBED={CATS,CONFIG,EXTRA};
+let RUNS=[];const RUNCACHE={};
+const monthParam=()=>new URLSearchParams(location.search).get("month");
+function applyRun(j){
+  CATS=j.categories;CONFIG=Object.assign({},EMBED.CONFIG,j.config,{scoreMonth:j.scoring_month});
+  EXTRA={callouts:j.callouts||[],warnings:j.warnings||[],listCapture:(j.list_capture||{}).date||EMBED.EXTRA.listCapture,runLog:j.run_log||null,source:"run"};
+  M=CONFIG.scoreMonth;SC=Object.keys(CATS).map(c=>score(c,M)).sort((a,b)=>b.score-a.score);
+  renderAll();showMonthState();
+}
+function showMonthState(){
+  const newest=RUNS.length?RUNS[RUNS.length-1].month:M;
+  const sel=$("#month");if(sel.value!==M)sel.value=M;
+  const past=M<newest;$("#pastbar").hidden=!past;
+  if(past){$("#pastmsg").textContent=`You are viewing the ${fmtM(M)} run, with the scores, notes and warnings published for that month.`;$("#pastlink").href="./"+location.hash}
+}
+async function loadRun(month){
+  const run=RUNS.find(r=>r.month===month);if(!run)return false;
+  try{
+    if(!RUNCACHE[month]){const r=await fetch("../data/"+run.file,{cache:"no-cache"});if(!r.ok)return false;RUNCACHE[month]=await r.json()}
+    applyRun(RUNCACHE[month]);return true;
+  }catch(e){return false}
+}
+function renderHistory(){
+  $("#history-body").innerHTML=RUNS.slice().reverse().map(x=>{const t=x.scores[0],cv=x.scores.filter(s=>s.convergence).map(s=>s.code);
+    return `<tr><td><a class="month" href="?month=${encodeURIComponent(x.month)}#ranking">${fmtM(x.month)}</a></td><td class="mono">${esc(x.run_date||"")}</td><td>${esc(t.name)} <span class="code">${esc(t.code)}</span> ${Math.round(t.score)}</td><td>${cv.length?cv.map(c=>`<span class="code">${esc(c)}</span>`).join(" "):'<span class="sub">None</span>'}</td><td class="mono">v${esc(x.config_version)}</td></tr>`}).join("");
+  $("#history-panel").hidden=false;
+}
+(async()=>{
+  try{const r=await fetch("../data/runs.json",{cache:"no-cache"});if(r.ok){const j=await r.json();if(Array.isArray(j))RUNS=j.filter(x=>x&&x.month&&x.file&&Array.isArray(x.scores)&&x.scores.length).sort((a,b)=>a.month<b.month?-1:1)}}catch(e){}
+  if(RUNS.length){
+    $("#month").innerHTML=RUNS.slice().reverse().map((x,i)=>`<option value="${esc(x.month)}">${fmtM(x.month)}${i===0?" (latest)":""}</option>`).join("");
+    $("#monthpick").hidden=false;renderHistory();
+    const want=monthParam(),target=RUNS.some(r=>r.month===want)?want:RUNS[RUNS.length-1].month;
+    if(!(await loadRun(target))&&target!==RUNS[RUNS.length-1].month)await loadRun(RUNS[RUNS.length-1].month);
+  }else{
+    // Older deployments without run files: fall back to latest.json
+    try{const r=await fetch("../data/latest.json",{cache:"no-cache"});if(r.ok){const j=await r.json();if(j&&j.categories&&j.config)applyRun(j)}}catch(e){}
+  }
+})();
+$("#month").addEventListener("change",async e=>{
+  const m=e.target.value,newest=RUNS[RUNS.length-1].month;
+  const u=new URL(location.href);if(m===newest)u.searchParams.delete("month");else u.searchParams.set("month",m);
+  history.replaceState(null,"",u.pathname+u.search+u.hash);
+  if(!(await loadRun(m))){$("#month").value=M;$("#export-msg").textContent=`The ${fmtM(m)} run could not be loaded.`}
+});
+</script>
+</body>
+</html>

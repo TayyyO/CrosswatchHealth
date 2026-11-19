@@ -1,0 +1,93 @@
+[
+ {
+  "month": "2026-09",
+  "run_date": "2026-11-02",
+  "config_version": "0.1",
+  "file": "runs/2026-09.json",
+  "snapshot": "snapshot-2026-09.json",
+  "list_capture": "2026-10-26",
+  "scores": [
+   {
+    "code": "KNW",
+    "name": "Stereotactic breast biopsy needles",
+    "score": 67.1,
+    "tier": "High",
+    "convergence": true,
+    "safety": 0.701,
+    "supply": 0.64
+   },
+   {
+    "code": "DTZ",
+    "name": "Oxygenators, cardiopulmonary bypass",
+    "score": 57.0,
+    "tier": "High",
+    "convergence": true,
+    "safety": 0.5,
+    "supply": 0.64
+   },
+   {
+    "code": "DXT",
+    "name": "Angiographic control syringes",
+    "score": 57.0,
+    "tier": "High",
+    "convergence": true,
+    "safety": 0.5,
+    "supply": 0.64
+   },
+   {
+    "code": "GEI",
+    "name": "Electrosurgical cutting and coagulation devices (incl. endoscopic vessel harvesting)",
+    "score": 47.0,
+    "tier": "Elevated",
+    "convergence": false,
+    "safety": 0.3,
+    "supply": 0.64
+   },
+   {
+    "code": "BYS",
+    "name": "Oxygenators, long-term support over 6 hours",
+    "score": 44.0,
+    "tier": "Elevated",
+    "convergence": false,
+    "safety": 0.0,
+    "supply": 0.88
+   },
+   {
+    "code": "HBA",
+    "name": "Neurosurgical patties, sponges and strips",
+    "score": 35.8,
+    "tier": "Elevated",
+    "convergence": false,
+    "safety": 0.075,
+    "supply": 0.64
+   },
+   {
+    "code": "FJK",
+    "name": "Hemodialysis bloodlines",
+    "score": 25.2,
+    "tier": "Watch",
+    "convergence": false,
+    "safety": 0.225,
+    "supply": 0.28
+   },
+   {
+    "code": "LNQ",
+    "name": "Implantable gastric electrical stimulation systems",
+    "score": 14.0,
+    "tier": "Low",
+    "convergence": false,
+    "safety": 0.0,
+    "supply": 0.28
+   },
+   {
+    "code": "MDB",
+    "name": "Blood culturing systems (BD BACTEC bottles)",
+    "score": 8.0,
+    "tier": "Low",
+    "convergence": false,
+    "safety": 0.0,
+    "supply": 0.16
+   }
+  ]
+ }
+]
